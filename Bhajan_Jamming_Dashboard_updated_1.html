@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bhajan Jamming — June 7, 2026 — Event Dashboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+:root{--bg:#0c0a14;--surface:#161224;--surface2:#1e1832;--border:#2a2444;--text:#e8e4f0;--text-dim:#8a82a0;--accent:#f59e0b;--accent-glow:#f59e0b44;--shakti:#e74c3c;--seva:#9b59b6;--shraddha:#3498db;--senior:#2ecc71;--paid:#2ecc71;--unpaid:#e74c3c;--conflict:#ff6b6b;--free:#8a82a0;--over:#e67e22;--under:#9b59b6}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.app-header{background:linear-gradient(135deg,#1a1230 0%,#2d1f4e 50%,#1a1230 100%);border-bottom:1px solid var(--border);padding:20px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.app-header h1{font-size:22px;font-weight:700;background:linear-gradient(135deg,var(--accent),#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.5px}
+.app-header .subtitle{font-size:13px;color:var(--text-dim);font-weight:400}
+.header-stats{display:flex;gap:24px;flex-wrap:wrap}
+.header-stat{text-align:center}
+.header-stat .val{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.header-stat .lbl{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px}
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto}
+.tab{padding:14px 28px;cursor:pointer;font-size:14px;font-weight:500;color:var(--text-dim);border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;position:relative}
+.tab:hover{color:var(--text);background:var(--surface2)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--surface2)}
+.tab-badge{position:absolute;top:6px;right:6px;background:var(--conflict);color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.panel{display:none;padding:24px}.panel.active{display:block}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.card h3{font-size:15px;font-weight:600;margin-bottom:16px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px}
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.kpi.revenue::before{background:var(--accent)}.kpi.tickets::before{background:var(--shraddha)}.kpi.paid::before{background:var(--paid)}.kpi.unpaid::before{background:var(--unpaid)}.kpi.donation::before{background:var(--seva)}.kpi.seats-kpi::before{background:#e67e22}.kpi.conflict-kpi::before{background:var(--conflict)}.kpi.over-kpi::before{background:var(--over)}
+.kpi .kpi-label{font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.kpi .kpi-value{font-size:28px;font-weight:800;font-family:'JetBrains Mono',monospace}
+.bar-chart{margin-top:12px}
+.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.bar-label{font-size:13px;min-width:140px;color:var(--text-dim)}
+.bar-track{flex:1;height:24px;background:var(--surface2);border-radius:6px;overflow:hidden}
+.bar-fill{height:100%;border-radius:6px;transition:width .8s ease;display:flex;align-items:center;padding-left:8px;font-size:12px;font-weight:600;font-family:'JetBrains Mono',monospace;color:#fff}
+/* Action list tables */
+.action-table{width:100%;border-collapse:collapse;font-size:13px}
+.action-table th{text-align:left;padding:8px 12px;background:var(--surface2);color:var(--text-dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+.action-table td{padding:8px 12px;border-bottom:1px solid var(--border)}
+.action-table tr:hover td{background:var(--surface2)}
+.action-icon{font-size:16px;margin-right:4px}
+.issue-card{background:var(--surface);border-radius:12px;padding:20px;margin-bottom:16px;border:1px solid}
+.issue-card.conflict-type{border-color:var(--conflict);border-left:4px solid var(--conflict)}
+.issue-card.unassigned-type{border-color:var(--under);border-left:4px solid var(--under)}
+.issue-card.over-type{border-color:var(--over);border-left:4px solid var(--over)}
+.issue-card h4{font-size:14px;margin-bottom:8px}
+/* Seat map */
+.seat-map-wrapper{overflow-x:auto;padding:20px 0}
+.seat-map-theater{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:1050px}
+.stage-label{background:linear-gradient(135deg,var(--accent),#fbbf24);color:#000;font-weight:700;font-size:16px;padding:10px 80px;border-radius:8px 8px 0 0;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.seat-row-wrap{display:flex;align-items:center;gap:0}
+.section-odds{display:flex;flex-direction:row-reverse;gap:2px}
+.section-evens{display:flex;flex-direction:row;gap:2px}
+.aisle{width:36px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace}
+.row-label-l,.row-label-r{width:28px;text-align:center;font-weight:700;font-size:13px;color:var(--accent);font-family:'JetBrains Mono',monospace;flex-shrink:0}
+.seat{width:28px;height:24px;border-radius:5px 5px 2px 2px;display:flex;align-items:center;justify-content:center;font-size:7.5px;font-weight:700;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all .15s;border:2px solid transparent;position:relative;flex-shrink:0;overflow:hidden}
+.seat.empty{background:var(--surface2);border-color:var(--border);color:var(--text-dim)}
+.seat.occupied{color:#fff}
+.seat.conflict{animation:pulse-conflict 1s infinite;box-shadow:0 0 8px var(--conflict);border-color:var(--conflict)!important}
+.seat.member-over{box-shadow:0 0 5px var(--over);border-color:var(--over)!important;border-width:2px}
+.seat.member-under{border-style:dashed!important;border-color:var(--under)!important;border-width:2px}
+@keyframes pulse-conflict{0%,100%{border-color:var(--conflict);box-shadow:0 0 8px var(--conflict)}50%{border-color:#fff;box-shadow:0 0 14px #fff4}}
+.seat:hover{transform:scale(1.7);z-index:10;box-shadow:0 4px 16px rgba(0,0,0,.5)}
+.seat.dragging{opacity:.4}
+.seat.drag-over{border-color:var(--accent)!important;box-shadow:0 0 12px var(--accent-glow);transform:scale(1.3)}
+.seat.highlighted{transform:scale(1.3);z-index:5;box-shadow:0 0 14px var(--accent),0 0 28px var(--accent-glow);border-color:var(--accent)!important;border-width:2.5px}
+.seat.dimmed{opacity:.2;filter:grayscale(.5)}
+.seat.assignable{cursor:pointer;border-color:var(--accent)!important;border-style:dashed!important;background:rgba(245,158,11,.1)!important}
+.seat.assignable:hover{background:rgba(245,158,11,.25)!important;transform:scale(1.4);box-shadow:0 0 12px var(--accent-glow)}
+.seat-tooltip{display:none;position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:13px;z-index:1000;box-shadow:0 8px 32px rgba(0,0,0,.6);pointer-events:none;max-width:280px}
+.seat-tooltip.show{display:block}
+.seat-tooltip .tt-name{font-weight:700;font-size:14px;margin-bottom:4px}
+.seat-tooltip .tt-detail{color:var(--text-dim)}
+.seat-legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;background:var(--surface);border-radius:8px;border:1px solid var(--border);align-items:center}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:13px}
+.legend-swatch{width:18px;height:14px;border-radius:4px 4px 1px 1px}
+.entrance-label{background:var(--surface2);color:var(--text-dim);font-size:12px;padding:6px 24px;border-radius:4px;margin:10px 0;letter-spacing:1px;text-transform:uppercase;border:1px dashed var(--border)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 12px;background:var(--surface2);color:var(--text-dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);position:sticky;top:0;cursor:pointer}
+th:hover{color:var(--accent)}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:hover td{background:var(--surface2)}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-paid{background:#2ecc7122;color:var(--paid)}.badge-unpaid{background:#e74c3c22;color:var(--unpaid)}.badge-conflict{background:#ff6b6b22;color:var(--conflict)}.badge-free{background:#8a82a022;color:var(--free)}.badge-over{background:#e67e2222;color:var(--over)}.badge-under{background:#9b59b622;color:var(--under)}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px}
+.form-group label{display:block;font-size:12px;color:var(--text-dim);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.form-group input,.form-group select{width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+.form-group input:focus,.form-group select:focus{border-color:var(--accent)}
+.form-group select option{background:var(--surface)}
+.btn{padding:10px 24px;border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--accent);color:#000}
+.btn-primary:hover{background:#fbbf24;transform:translateY(-1px)}
+.btn-sm{padding:6px 14px;font-size:12px}
+.btn-danger{background:var(--conflict);color:#fff}
+.btn-danger:hover{background:#ff4444}
+.search-bar{margin-bottom:16px}
+.search-bar input{width:100%;max-width:400px;padding:10px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;outline:none}
+.search-bar input:focus{border-color:var(--accent)}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:2000;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;width:90%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,.5);max-height:90vh;overflow-y:auto}
+.modal h3{font-size:18px;margin-bottom:16px;color:var(--accent)}
+.modal .form-group{margin-bottom:12px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:768px){.chart-row{grid-template-columns:1fr}.seat{width:22px;height:20px;font-size:6px}.aisle{width:20px}}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.filter-chip{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text-dim);transition:all .2s}
+.filter-chip.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.drag-hint{font-size:12px;color:var(--text-dim);font-style:italic;margin-bottom:8px}
+.inline-edit{width:50px;padding:4px 6px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;outline:none}
+.inline-edit:focus{border-color:var(--accent)}
+.seat-badge{display:flex;align-items:center;gap:4px;font-size:11px;font-family:'JetBrains Mono',monospace}
+.seat-badge .ct{padding:1px 5px;border-radius:4px;font-weight:600}
+.seat-badge .ct.ok{background:#2ecc7122;color:var(--paid)}
+.seat-badge .ct.over{background:#e67e2222;color:var(--over)}
+.seat-badge .ct.under{background:#9b59b622;color:var(--under)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--conflict);color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;z-index:3000;display:none;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+.toast.show{display:block;animation:toastIn .3s ease}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.remove-seat-btn{background:none;border:none;color:var(--conflict);cursor:pointer;font-size:14px;padding:2px 4px;border-radius:4px}
+.remove-seat-btn:hover{background:var(--conflict);color:#fff}
+</style>
+</head>
+<body>
+<div class="app-header">
+  <div><h1>Bhajan Jamming 2026</h1><div class="subtitle">June 7 · 4–9 PM · Ray & Joan Kroc Center · Phoenix, AZ · 350 Seats</div></div>
+  <div class="header-stats" id="headerStats"></div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <button class="btn btn-sm" style="background:var(--paid);color:#000;font-size:12px;padding:6px 14px" onclick="saveState()">💾 Save</button>
+    <button class="btn btn-sm" style="background:var(--surface2);color:var(--text);font-size:12px;padding:6px 14px;border:1px solid var(--border)" onclick="document.getElementById('loadFile').click()">📂 Load</button>
+    <button class="btn btn-sm" style="background:var(--surface2);color:var(--text-dim);font-size:11px;padding:6px 10px;border:1px solid var(--border)" onclick="if(confirm('Reset all data to original? Your changes will be lost.'))clearSavedState()">↺ Reset</button>
+    <span id="saveStatus" style="font-size:11px;color:var(--text-dim)"></span>
+  </div>
+</div>
+<input type="file" id="loadFile" accept=".json" style="display:none" onchange="loadState(this)">
+<div class="tabs" id="tabBar">
+  <div class="tab active" data-tab="dashboard">Dashboard</div>
+  <div class="tab" data-tab="seats">Seat Map</div>
+  <div class="tab" data-tab="members">Members</div>
+  <div class="tab" data-tab="issues">Issues<span class="tab-badge" id="issuesBadge" style="display:none">0</span></div>
+  <div class="tab" data-tab="add">+ Add Member</div>
+</div>
+<div class="panel active" id="panel-dashboard"></div>
+<div class="panel" id="panel-seats"></div>
+<div class="panel" id="panel-members"></div>
+<div class="panel" id="panel-issues"></div>
+<div class="panel" id="panel-add"></div>
+<div class="seat-tooltip" id="tooltip"></div>
+<div class="toast" id="toast"></div>
+
+<!-- Edit Member Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h3 id="editModalTitle">Edit Member</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>First Name</label><input type="text" id="editFirst"></div>
+      <div class="form-group"><label>Last Name</label><input type="text" id="editLast"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Shakti Tickets</label><input type="number" id="editShakti" min="0"></div>
+      <div class="form-group"><label>Seva Tickets</label><input type="number" id="editSeva" min="0"></div>
+      <div class="form-group"><label>Shraddha Tickets</label><input type="number" id="editShraddha" min="0"></div>
+      <div class="form-group"><label>Senior Tickets</label><input type="number" id="editSenior" min="0"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Payment Method</label><select id="editMethod"><option>Card</option><option>Apple/Google Pay</option><option>Cash (Rupal)</option><option>Cash (Leena)</option><option>Not Paid</option><option>Free (Volunteer)</option><option>Free ($200 donation)</option><option>Free ($500 donation)</option></select></div>
+      <div class="form-group"><label>Status</label><select id="editStatus"><option>Succeeded</option><option>Not Paid</option><option>Free</option></select></div>
+      <div class="form-group"><label>Amount ($)</label><input type="number" id="editAmount" min="0"></div>
+      <div class="form-group"><label>Donation ($)</label><input type="number" id="editDonation" min="0"></div>
+    </div>
+    <div class="form-group"><label>Seats (comma-separated)</label><input type="text" id="editSeats"></div>
+    <div class="form-group"><label>Notes</label><input type="text" id="editNotes"></div>
+    <div class="form-group"><label>Tag</label><input type="text" id="editTag" placeholder="e.g. VIP, Family, Group A"></div>
+    <div id="editSeatWarning" style="display:none;color:var(--conflict);font-size:13px;margin-top:8px;padding:8px;background:#ff6b6b12;border-radius:6px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-sm" onclick="closeEditModal()" style="background:var(--surface2);color:var(--text)">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Donation Modal -->
+<div class="modal-overlay" id="donationModal">
+  <div class="modal">
+    <h3>Add Donation</h3>
+    <div class="form-group"><label>Member</label><input type="text" id="donMember" readonly></div>
+    <div class="form-group"><label>Donation Amount ($)</label><input type="number" id="donAmount" min="0" step="1" placeholder="0"></div>
+    <div class="form-group"><label>Note</label><input type="text" id="donNote" placeholder="e.g. Cash donation"></div>
+    <div class="modal-actions">
+      <button class="btn btn-sm" onclick="closeDonationModal()" style="background:var(--surface2);color:var(--text)">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveDonation()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ROWS_CONFIG = {
+  A:{odds:[1,3,5,7,9,11,13,15,17,19,21,23],evens:[2,4,6,8,10,12,14,16,18,20,22,24],tier:'shakti'},
+  B:{odds:[1,3,5,7,9,11,13,15,17,19,21,23,25],evens:[2,4,6,8,10,12,14,16,18,20,22,24,26],tier:'seva'},
+  C:{odds:[1,3,5,7,9,11,13,15,17,19,21,23,25,27],evens:[2,4,6,8,10,12,14,16,18,20,22,24,26,28],tier:'shraddha'},
+  D:{odds:[1,3,5,7,9,11,13,15,17,19,21,23,25,27,29],evens:[2,4,6,8,10,12,14,16,18,20,22,24,26,28,30],tier:'shraddha'},
+  E:{odds:[1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31],evens:[2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32],tier:'shraddha'},
+  F:{odds:[1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33],evens:[2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34],tier:'shraddha'},
+  G:{odds:[1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35],evens:[2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36],tier:'shraddha'},
+  H:{odds:[1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37],evens:[2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38],tier:'shraddha'},
+  J:{odds:[1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37,39],evens:[2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40],tier:'shraddha'},
+  K:{odds:[1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37,39,41],evens:[2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42],tier:'shraddha'},
+  L:{odds:[1,3,5,7,9,11,13,15,17,19],evens:[2,4,6,8,10,12,14,16,18,20],tier:'shraddha'},
+};
+
+let DATA=[];
+function initData(){
+const raw=[
+    {amount:40,method:"Cash (Rupal)",status:"Succeeded",first:"Arun",last:"Asarawala",shakti:0,seva:0,shraddha:0,senior:2,tickets:2,seats:"H1, H3",notes:"",donation:0,donationNote:"",tag:"RupalA"},
+    {amount:48,method:"Card",status:"Succeeded",first:"Ajay",last:"Bavle",shakti:0,seva:0,shraddha:2,senior:0,tickets:2,seats:"G11, G13",notes:"",donation:0,donationNote:"",tag:"Zeffy"},
+    {amount:40,method:"Card",status:"Succeeded",first:"Baldev",last:"Bhakta",shakti:0,seva:0,shraddha:0,senior:2,tickets:2,seats:"E26, E28",notes:"",donation:0,donationNote:"",tag:"Zeffy"},
+    {amount:40,method:"Card",status:"Succeeded",first:"Daxa",last:"Bhakta",shakti:0,seva:0,shraddha:0,senior:2,tickets:2,seats:"E32, E30",notes:"",donation:0,donationNote:"",tag:"Zeffy"},
+    {amount:30,method:"Card",status:"Succeeded",first:"Mouly",last:"Bhatt",shakti:0,seva:0,shraddha:1,senior:0,tickets:1,seats:"C23",notes:"",donation:0,donationNote:"",tag:"Zeffy"},
+    {amount:240,method:"Card",status:"Succeeded",first:"Yagnesh",last:"Damania",shakti:0,seva:0,shraddha:10,senior:0,tickets:10,seats:"C2, C4, C6, C8, C10, C12, C14, C16, C18, C20,",notes:"",donation:0,donationNote:"",tag:"Yagnesh"},
+    {amount:48,method:"Not Paid",status:"Not Paid",first:"Rajesh",last:"Daulat",shakti:0,seva:0,shraddha:2,senior:0,tickets:2,seats:"F12, F14",notes:"",donation:0,donationNote:"",tag:""},
+    {amount:60,method:"Card",status:"Succeeded",first:"Narendra",last:"Desai",shakti:0,seva:0,shraddha:2,senior:0,tickets:2,seats:"D1, D3",notes:"",donation:0,donationNote:"",tag:"Zeffy"},
+    {amount:88,method:"Apple/Google Pay",status:"Succeeded",first:"Anisha",last:"Hindocha",shakti:0,seva:0,shraddha:2,senior:2,tickets:4,seats:"J5, J7, J9, J11",notes:"",donation:0,donationNote:"",tag:"Zeffy"},
+    {amount:0,method:"Free ($500 donation)",status:"Succeeded",first:"Hansa",last:"Jarecha",shakti:2,seva:0,shraddha:0,senior:0,tickets:2,seats:"A10, A12",notes:"$500 donation — Paid",donation:500,donationNote:"$500 donation",tag:"Donation"},
+    {amount:24,method:"Apple/Google Pay",status:"Succeeded",first:"Jeet",last:"Kabra",shakti:0,seva:0,shraddha:1,senior:0,tickets:1,seats:"D22",notes:"",donation:0,donationNote:"",tag:"Zeffy"},
+    {amount:40,method:"Cash (Rupal)",status:"Succeeded",first:"Prakash & Meena",last:"Kotecha",shakti:0,seva:0,shraddha:0,senior:2,tickets:2,seats:"G6, G8",notes:"",donation:0,donationNote:"",tag:"RupalA"},
+    {amount:144,method:"Card",status:"Succeeded",first:"Suruchi",last:"Krishna",shakti:0,seva:3,shraddha:0,senior:0,tickets:3,seats:"B9, B11, B13",notes:"",donation:0,donationNote:"",tag:"Zeffy"},
+    {amount:120,method:"Apple/Google Pay",status:"Succeeded",first:"Namita",last:"Madaan",shakti:0,seva:0,shraddha:4,senior:0,tickets:4,seats:"H19, H21, H23, H25",notes:"",donation:0,donationNote:"",tag:"Zeffy"},
+    {amount:48,method:"Card",status:"Succeeded",first:"Manish",last:"Mota",shakti:0,seva:0,shraddha:2,senior:0,tickets:2,seats:"G34, G32",notes:"",donation:0,donationNote:"",tag:"Zeffy"},
+    {amount:240,method:"Card",status:"Succeeded",first:"Manish",last:"Mota",shakti:0,seva:0,shraddha:10,senior:0,tickets:10,seats:"F20, F22, F24, F26, F28, F30, F32, F34, H28, H30",notes:"",donation:0,donationNote:"",tag:"Zeffy"},
+    {amount:44,method:"Card",status:"Succeeded",first:"Shreyshree",last:"Nath",shakti:0,seva:0,shraddha:1,senior:1,tickets:2,seats:"C25, C27",notes:"",donation:0,donationNote:"",tag:"Zeffy"},
+    {amount:60,method:"Card",status:"Succeeded",first:"Paulomi",last:"Patel",shakti:0,seva:0,shraddha:2,senior:0,tickets:2,seats:"E11, E13",notes:"",donation:0,donationNote:"",tag:"Zeffy"},
+    {amount:20,method:"Apple/Google Pay",status:"Succeeded",first:"Nirali",last:"Patel",shakti:0,seva:0,shraddha:0,senior:1,tickets:1,seats:"F11",notes:"",donation:0,donationNote:"",tag:"Zeffy"},
+    {amount:40,method:"Cash (Rupal)",status:"Succeeded",first:"Hema & Subhash",last:"Patel",shakti:0,seva:0,shraddha:0,senior:2,tickets:2,seats:"F1, F3",notes:"",donation:0,donationNote:"",tag:"RupalA"},
+    {amount:40,method:"Cash (Rupal)",status:"Succeeded",first:"Champaben",last:"Patel",shakti:0,seva:0,shraddha:0,senior:2,tickets:2,seats:"F2, F4",notes:"",donation:0,donationNote:"",tag:"RupalA"},
+    {amount:40,method:"Cash (Rupal)",status:"Succeeded",first:"Bhaghubhai",last:"Patel",shakti:0,seva:0,shraddha:0,senior:2,tickets:2,seats:"B1, B3",notes:"",donation:0,donationNote:"",tag:"RupalA"},
+    {amount:40,method:"Apple/Google Pay",status:"Succeeded",first:"Kinjal",last:"Patel (1)",shakti:0,seva:0,shraddha:0,senior:2,tickets:2,seats:"J13, J15",notes:"",donation:0,donationNote:"",tag:"Zeffy"},
+    {amount:40,method:"Apple/Google Pay",status:"Succeeded",first:"Kinjal",last:"Patel (2)",shakti:0,seva:0,shraddha:0,senior:2,tickets:2,seats:"J17, J19",notes:"",donation:0,donationNote:"",tag:"Zeffy"},
+    {amount:48,method:"Apple/Google Pay",status:"Succeeded",first:"Pinky",last:"Patel",shakti:0,seva:0,shraddha:2,senior:0,tickets:2,seats:"H18, H20",notes:"",donation:0,donationNote:"",tag:"Leena"},
+    {amount:200,method:"Not Paid",status:"Not Paid",first:"Minaxi",last:"Patel",shakti:0,seva:0,shraddha:0,senior:2,tickets:2,seats:"A1, A3",notes:"",donation:0,donationNote:"",tag:""},
+    {amount:150,method:"Cash (Rupal)",status:"Succeeded",first:"Suru",last:"Patel",shakti:0,seva:2,shraddha:0,senior:2,tickets:4,seats:"B5, B7, J1, J3",notes:"",donation:0,donationNote:"",tag:"RupalA"},
+    {amount:20,method:"Cash (Rupal)",status:"Succeeded",first:"Premila",last:"Patel",shakti:0,seva:0,shraddha:0,senior:1,tickets:1,seats:"F6",notes:"",donation:0,donationNote:"",tag:"RupalA"},
+    {amount:192,method:"Card",status:"Succeeded",first:"Dhiren",last:"Pathak",shakti:2,seva:0,shraddha:0,senior:0,tickets:2,seats:"A2, A4",notes:"",donation:0,donationNote:"",tag:"Zeffy"},
+    {amount:40,method:"Cash (Rupal)",status:"Succeeded",first:"Bipin & Anila",last:"Popat",shakti:0,seva:0,shraddha:0,senior:2,tickets:2,seats:"F8, F10",notes:"",donation:0,donationNote:"",tag:"RupalA"},
+    {amount:96,method:"Cash (Rupal)",status:"Succeeded",first:"Subhash",last:"Raval",shakti:0,seva:2,shraddha:0,senior:0,tickets:2,seats:"B2, B4",notes:"",donation:0,donationNote:"",tag:"RupalA"},
+    {amount:60,method:"Card",status:"Succeeded",first:"Bimal",last:"Shah",shakti:0,seva:0,shraddha:2,senior:0,tickets:2,seats:"E15, E17",notes:"",donation:0,donationNote:"",tag:"Zeffy"},
+    {amount:336,method:"Cash (Rupal)",status:"Succeeded",first:"Raj & Paragi",last:"Shah",shakti:0,seva:0,shraddha:14,senior:0,tickets:14,seats:"H27, H29, H31, H33, H35, H37, G19, G21, G23, G25, G27, G29, G2, G4",notes:"",donation:0,donationNote:"",tag:"RupalA"},
+    {amount:168,method:"Cash (Rupal)",status:"Succeeded",first:"Bina",last:"Shah",shakti:0,seva:0,shraddha:7,senior:0,tickets:7,seats:"H5, H7, H9, H11, H13, H15, H17",notes:"",donation:0,donationNote:"",tag:"RupalA"},
+    {amount:48,method:"Card",status:"Succeeded",first:"Pradip",last:"Sheth",shakti:0,seva:0,shraddha:2,senior:0,tickets:2,seats:"G17, G15",notes:"Refund noted $8",donation:0,donationNote:"",tag:"Zeffy"},
+    {amount:240,method:"Apple/Google Pay",status:"Succeeded",first:"Anjana",last:"Sidapara (1)",shakti:0,seva:0,shraddha:10,senior:0,tickets:10,seats:"D2, D4, D6, D8, D10, D12, D14, D16, D18, D20",notes:"Refund noted $12",donation:0,donationNote:"",tag:"Anju"},
+    {amount:192,method:"Apple/Google Pay",status:"Succeeded",first:"Anjana",last:"Sidapara (2)",shakti:0,seva:0,shraddha:8,senior:0,tickets:8,seats:"E2, E4, E6, E8, E10, E12, E14, E16",notes:"",donation:0,donationNote:"",tag:"Anju"},
+    {amount:48,method:"Apple/Google Pay",status:"Succeeded",first:"Vraj",last:"Sidapara (1)",shakti:0,seva:0,shraddha:2,senior:0,tickets:2,seats:"E18, E20",notes:"",donation:0,donationNote:"",tag:"Anju"},
+    {amount:60,method:"Apple/Google Pay",status:"Succeeded",first:"Vraj",last:"Sidapara (2)",shakti:0,seva:0,shraddha:2,senior:0,tickets:2,seats:"E22, E24",notes:"",donation:0,donationNote:"",tag:"Anju"},
+    {amount:240,method:"Card",status:"Succeeded",first:"Nirali",last:"Soni (1)",shakti:0,seva:0,shraddha:10,senior:0,tickets:10,seats:"C1, C3, C5, C7, C9, C11, C13, C15, C17, C19",notes:"",donation:0,donationNote:"",tag:"Nirali-Sapin"},
+    {amount:240,method:"Card",status:"Succeeded",first:"Nirali",last:"Soni (2)",shakti:0,seva:0,shraddha:10,senior:0,tickets:10,seats:"D5, D7, D9, D11, D13, D15, D17, D19, D21, D23",notes:"",donation:0,donationNote:"",tag:"Nirali-Sapin"},
+    {amount:120,method:"Card",status:"Succeeded",first:"Nirali",last:"Soni (3)",shakti:0,seva:0,shraddha:5,senior:0,tickets:5,seats:"E1, E3, E5, E7, E9",notes:"",donation:0,donationNote:"",tag:"Nirali-Sapin"},
+    {amount:48,method:"Not Paid",status:"Not Paid",first:"Deepali and Rushi",last:"Soni",shakti:0,seva:0,shraddha:2,senior:0,tickets:2,seats:"D26, D24",notes:"",donation:0,donationNote:"",tag:"Anju"},
+    {amount:30,method:"Card",status:"Succeeded",first:"Radha",last:"Valsadia",shakti:0,seva:0,shraddha:1,senior:0,tickets:1,seats:"C21",notes:"",donation:0,donationNote:"",tag:"Zeffy"},
+    {amount:0,method:"Free ($200 donation)",status:"Succeeded",first:"Pragna Ben",last:"Patel",shakti:0,seva:0,shraddha:2,senior:0,tickets:2,seats:"B6, B8",notes:"$200 donation — Paid",donation:200,donationNote:"$200 donation",tag:"Donation"},
+    {amount:0,method:"Free (Volunteer)",status:"Free",first:"Niru Aunty",last:"",shakti:0,seva:0,shraddha:0,senior:1,tickets:1,seats:"F5",notes:"Volunteer comp",donation:0,donationNote:"",tag:"President"},
+    {amount:0,method:"Free (Volunteer)",status:"Free",first:"Bakula Aunty",last:"",shakti:0,seva:0,shraddha:0,senior:1,tickets:1,seats:"F7",notes:"Volunteer comp",donation:0,donationNote:"",tag:"President"},
+    {amount:20,method:"Cash (Rupal)",status:"Succeeded",first:"Amruta Aunty",last:"Patel",shakti:0,seva:0,shraddha:0,senior:1,tickets:1,seats:"F9",notes:"",donation:0,donationNote:"",tag:"RupalA"},
+    {amount:0,method:"Free (Volunteer)",status:"Free",first:"Pushpa Aunty",last:"",shakti:0,seva:0,shraddha:0,senior:1,tickets:1,seats:"F13",notes:"Volunteer comp",donation:0,donationNote:"",tag:"President"},
+    {amount:0,method:"Free (Volunteer)",status:"Free",first:"Neela Ben",last:"",shakti:0,seva:0,shraddha:0,senior:1,tickets:1,seats:"F15",notes:"Volunteer comp",donation:0,donationNote:"",tag:"President"},
+    {amount:0,method:"Free (Volunteer)",status:"Free",first:"Anju Ben",last:"",shakti:0,seva:0,shraddha:0,senior:1,tickets:1,seats:"F17",notes:"Volunteer comp",donation:0,donationNote:"",tag:"President"},
+    {amount:0,method:"Free (Volunteer)",status:"Free",first:"Manju Ben",last:"",shakti:0,seva:0,shraddha:0,senior:1,tickets:1,seats:"F19",notes:"Volunteer comp",donation:0,donationNote:"",tag:"President"},
+    {amount:20,method:"Cash (Rupal)",status:"Succeeded",first:"Jayanti Uncle",last:"",shakti:0,seva:0,shraddha:0,senior:1,tickets:1,seats:"F21",notes:"",donation:0,donationNote:"",tag:"RupalA"},
+    {amount:20,method:"Cash (Rupal)",status:"Succeeded",first:"Jaswant Kaka",last:"",shakti:0,seva:0,shraddha:0,senior:1,tickets:1,seats:"F23",notes:"",donation:0,donationNote:"",tag:"RupalA"},
+    {amount:20,method:"Not Paid",status:"Not Paid",first:"Maya ben",last:"Patel",shakti:0,seva:0,shraddha:0,senior:1,tickets:1,seats:"E19",notes:"",donation:0,donationNote:"",tag:"Leena"},
+    {amount:20,method:"Not Paid",status:"Not Paid",first:"Bhadrik bhai",last:"Patel",shakti:0,seva:0,shraddha:0,senior:1,tickets:1,seats:"E21",notes:"",donation:0,donationNote:"",tag:"Leena"},
+    {amount:40,method:"Not Paid",status:"Not Paid",first:"Saroj and Jeetu bhai",last:"",shakti:0,seva:0,shraddha:0,senior:2,tickets:2,seats:"F16, F18",notes:"",donation:0,donationNote:"",tag:""},
+    {amount:24,method:"Cash (Leena)",status:"Succeeded",first:"Jigar",last:"Patel",shakti:0,seva:0,shraddha:1,senior:0,tickets:1,seats:"G14",notes:"",donation:0,donationNote:"",tag:"Leena"},
+    {amount:48,method:"Cash (Leena)",status:"Succeeded",first:"Mamta",last:"Tripathi (1)",shakti:0,seva:0,shraddha:2,senior:0,tickets:2,seats:"D25, D27",notes:"",donation:0,donationNote:"",tag:"Leena"},
+    {amount:48,method:"Cash (Leena)",status:"Succeeded",first:"Mamta",last:"Tripathi (2)",shakti:0,seva:0,shraddha:2,senior:0,tickets:2,seats:"H6, H8",notes:"",donation:0,donationNote:"",tag:"Leena"},
+    {amount:48,method:"Cash (Leena)",status:"Succeeded",first:"Mona & Ankit",last:"Shah",shakti:0,seva:0,shraddha:2,senior:0,tickets:2,seats:"H22, H24",notes:"",donation:0,donationNote:"",tag:"Leena"},
+    {amount:20,method:"Cash (Leena)",status:"Succeeded",first:"Harshad Bhai",last:"Patel",shakti:0,seva:0,shraddha:0,senior:1,tickets:1,seats:"G18",notes:"",donation:0,donationNote:"",tag:"Leena"},
+    {amount:48,method:"Cash (Leena)",status:"Succeeded",first:"Krushangi",last:"Trivedi",shakti:0,seva:0,shraddha:2,senior:0,tickets:2,seats:"H10, H12",notes:"",donation:0,donationNote:"",tag:"Leena"},
+    {amount:20,method:"Not Paid",status:"Not Paid",first:"Damini Ben",last:"Shah",shakti:0,seva:0,shraddha:0,senior:1,tickets:1,seats:"E23",notes:"",donation:0,donationNote:"",tag:"Leena"},
+    {amount:24,method:"Not Paid",status:"Not Paid",first:"Hemal",last:"Shah",shakti:0,seva:0,shraddha:1,senior:0,tickets:1,seats:"G16",notes:"",donation:0,donationNote:"",tag:"Leena"},
+    {amount:24,method:"Not Paid",status:"Not Paid",first:"Ashokbhai",last:"Tripathi",shakti:0,seva:0,shraddha:1,senior:0,tickets:1,seats:"G12",notes:"",donation:0,donationNote:"",tag:"Leena"},
+    {amount:24,method:"Cash (Leena)",status:"Succeeded",first:"Krishna",last:"Joshi",shakti:0,seva:0,shraddha:1,senior:0,tickets:1,seats:"H26",notes:"",donation:0,donationNote:"",tag:"Leena"},
+    {amount:24,method:"Cash (Leena)",status:"Succeeded",first:"Ila Ben",last:"Patel",shakti:0,seva:0,shraddha:1,senior:0,tickets:1,seats:"G20",notes:"",donation:0,donationNote:"",tag:"Leena"},
+    {amount:20,method:"Cash (Leena)",status:"Succeeded",first:"Bina Ben",last:"",shakti:0,seva:0,shraddha:0,senior:1,tickets:1,seats:"G28",notes:"",donation:0,donationNote:"",tag:"Leena"},
+    {amount:20,method:"Cash (Leena)",status:"Succeeded",first:"Sudha Ben",last:"Parikh",shakti:0,seva:0,shraddha:0,senior:1,tickets:1,seats:"G30",notes:"",donation:0,donationNote:"",tag:"Leena"},
+    {amount:48,method:"Cash (Leena)",status:"Succeeded",first:"Urvashi & Ashok",last:"Patel",shakti:0,seva:0,shraddha:2,senior:0,tickets:2,seats:"H14, H16",notes:"",donation:0,donationNote:"",tag:"Leena"},
+    {amount:40,method:"Cash (Leena)",status:"Succeeded",first:"Rekha Ben",last:"Patel (sr)",shakti:0,seva:0,shraddha:0,senior:2,tickets:2,seats:"G22, G24",notes:"",donation:0,donationNote:"",tag:"Leena"},
+    {amount:24,method:"Cash (Leena)",status:"Succeeded",first:"Rekha Ben",last:"Patel (sh)",shakti:0,seva:0,shraddha:1,senior:0,tickets:1,seats:"G26",notes:"",donation:0,donationNote:"",tag:"Leena"},
+    {amount:408,method:"Cash (Rupal)",status:"Succeeded",first:"Nirali Patel",last:"Patel",shakti:0,seva:0,shraddha:15,senior:0,tickets:15,seats:"J2, J4, J6, J8, J10, J12, J14, J16, J18, J20, J22, J24, J26, J28, J30",notes:"",donation:0,donationNote:"",tag:"RupalA"},
+    {amount:192,method:"Not Paid",status:"Not Paid",first:"Neelima and Chetan",last:"Avlani",shakti:2,seva:0,shraddha:0,senior:0,tickets:2,seats:"A5, A7",notes:"",donation:0,donationNote:"",tag:""},
+    {amount:192,method:"Not Paid",status:"Not Paid",first:"Jaishri",last:"Raju",shakti:2,seva:0,shraddha:0,senior:0,tickets:2,seats:"A9, A11",notes:"",donation:0,donationNote:"",tag:""},
+    {amount:48,method:"Cash (Rupal)",status:"Succeeded",first:"Deven Nishita",last:"Avlani",shakti:0,seva:0,shraddha:2,senior:0,tickets:2,seats:"H2, H4",notes:"",donation:0,donationNote:"",tag:"RupalA"},
+    {amount:29,method:"Cash (Rupal)",status:"Succeeded",first:"Upendra",last:"Patel",shakti:0,seva:0,shraddha:0,senior:1,tickets:1,seats:"J32",notes:"",donation:0,donationNote:"",tag:"RupalA"},
+    {amount:48,method:"Cash (Rupal)",status:"Succeeded",first:"Sandeepa",last:"Goyal",shakti:0,seva:0,shraddha:2,senior:0,tickets:2,seats:"F25, F27",notes:"",donation:0,donationNote:"",tag:"RupalA"},
+    {amount:120,method:"Cash (Rupal)",status:"Succeeded",first:"Shobhna",last:"Shah",shakti:0,seva:0,shraddha:5,senior:0,tickets:5,seats:"G1, G3, G5, G7, G9",notes:"",donation:0,donationNote:"",tag:"RupalA"},
+    {amount:240,method:"Cash (Rupal)",status:"Succeeded",first:"Poonam",last:"Jain",shakti:0,seva:0,shraddha:10,senior:0,tickets:10,seats:"K1, K3, K5, K7, K9, K11, K13, K15, K17, K19",notes:"",donation:0,donationNote:"",tag:"RupalA"},
+    {amount:24,method:"Not Paid",status:"Not Paid",first:"Praful",last:"Patel",shakti:0,seva:0,shraddha:1,senior:0,tickets:1,seats:"G10",notes:"",donation:0,donationNote:"",tag:"Leena"},
+    {amount:500,method:"Not Paid",status:"Not Paid",first:"Joe",last:"Dodani",shakti:2,seva:0,shraddha:0,senior:0,tickets:2,seats:"A6, A8",notes:"$500 donation commitment",donation:0,donationNote:"",tag:""},
+    {amount:156,method:"Card",status:"Succeeded",first:"Heli & Achal",last:"Shah",shakti:0,seva:0,shraddha:4,senior:3,tickets:7,seats:"J21, J23, J25, J27, J29, J31, J33",notes:"",donation:0,donationNote:"",tag:"Zeffy"},
+    {amount:100,method:"Card",status:"Succeeded",first:"Pratham",last:"Desai",shakti:0,seva:0,shraddha:2,senior:2,tickets:4,seats:"E25, E27, E29, E31",notes:"Unassigned",donation:0,donationNote:"",tag:"Zeffy"},
+    {amount:48,method:"Card",status:"Succeeded",first:"Yagnesh",last:"Damania (2)",shakti:0,seva:0,shraddha:0,senior:3,tickets:3,seats:"C22, C24, C26",notes:"Unassigned",donation:0,donationNote:"",tag:"Yagnesh"}
+  ];
+  DATA=raw.map((r,i)=>({...r,id:i,donation:r.donation||0,donationNote:r.donationNote||'',tag:r.tag||''}));
+}
+
+// ===== HELPERS =====
+function parseSeats(s){if(!s||!s.trim())return[];return s.split(',').map(x=>x.trim()).filter(x=>x.length>0)}
+function getSeatMap(){const m={};DATA.forEach(d=>{parseSeats(d.seats).forEach(s=>{if(!m[s])m[s]=[];m[s].push(d)})});return m}
+function getTier(m){if(m.shakti>0)return'shakti';if(m.seva>0)return'seva';if(m.shraddha>0)return'shraddha';if(m.senior>0)return'senior';if(m.status==='Free')return'free';return'shraddha'}
+function getConflicts(){const m=getSeatMap();const c={};Object.entries(m).forEach(([s,ms])=>{if(ms.length>1)c[s]=ms});return c}
+function seatCount(m){return parseSeats(m.seats).length}
+function getIssues(){
+  const conflicts=getConflicts();
+  const unassigned=DATA.filter(m=>m.tickets>0&&seatCount(m)<m.tickets);
+  const over=DATA.filter(m=>seatCount(m)>m.tickets);
+  return{conflicts,unassigned,over,total:Object.keys(conflicts).length+unassigned.length+over.length};
+}
+function showToast(msg,dur=3000){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+// ===== TABS =====
+document.querySelectorAll('.tab').forEach(t=>{t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+})});
+
+function render(){renderHeader();renderDashboard();renderSeatMap();renderMembers();renderIssues();renderAddForm();updateBadges();autoSave()}
+
+function updateBadges(){
+  const iss=getIssues();
+  const b=document.getElementById('issuesBadge');
+  if(iss.total>0){b.style.display='flex';b.textContent=iss.total}else{b.style.display='none'}
+}
+
+// ===== HEADER =====
+function renderHeader(){
+  const tt=DATA.reduce((s,m)=>s+m.tickets,0),tr=DATA.reduce((s,m)=>s+m.amount,0),td=DATA.reduce((s,m)=>s+(m.donation||0),0),iss=getIssues();
+  const assignedSeats=new Set();DATA.forEach(m=>parseSeats(m.seats).forEach(s=>assignedSeats.add(s)));
+  let totalSeats=0;Object.values(ROWS_CONFIG).forEach(r=>{totalSeats+=r.odds.length+r.evens.length});
+  document.getElementById('headerStats').innerHTML=`
+    <div class="header-stat"><div class="val" style="color:var(--accent)">${tt}</div><div class="lbl">Tickets</div></div>
+    <div class="header-stat"><div class="val" style="color:var(--paid)">$${tr.toLocaleString()}</div><div class="lbl">Revenue</div></div>
+    <div class="header-stat"><div class="val" style="color:var(--seva)">$${td.toLocaleString()}</div><div class="lbl">Donations</div></div>
+    <div class="header-stat"><div class="val">${assignedSeats.size}/${totalSeats}</div><div class="lbl">Seats Filled</div></div>
+    <div class="header-stat"><div class="val" style="color:${iss.total>0?'var(--conflict)':'var(--paid)'}">${iss.total}</div><div class="lbl">Issues</div></div>`;
+}
+
+// ===== DASHBOARD =====
+function renderDashboard(){
+  const panel=document.getElementById('panel-dashboard');
+  const tr=DATA.reduce((s,m)=>s+m.amount,0),td=DATA.reduce((s,m)=>s+(m.donation||0),0);
+  const pr=DATA.filter(m=>m.status==='Succeeded').reduce((s,m)=>s+m.amount,0);
+  const ur=DATA.filter(m=>m.status==='Not Paid').reduce((s,m)=>s+m.amount,0);
+  const tt=DATA.reduce((s,m)=>s+m.tickets,0);
+  const sk=DATA.reduce((s,m)=>s+m.shakti,0),sv=DATA.reduce((s,m)=>s+m.seva,0),sh=DATA.reduce((s,m)=>s+m.shraddha,0),sn=DATA.reduce((s,m)=>s+m.senior,0);
+  const iss=getIssues();
+  const methods={};
+  DATA.forEach(m=>{const k=m.method;if(!methods[k])methods[k]={amount:0,count:0};methods[k].amount+=m.amount;methods[k].count+=m.tickets});
+  const maxA=Math.max(...Object.values(methods).map(v=>v.amount),1);
+  const mc={'Card':'#3498db','Apple/Google Pay':'#9b59b6','Cash (Rupal)':'#2ecc71','Cash (Leena)':'#e67e22','Not Paid':'#e74c3c'};
+  let bars='';
+  Object.entries(methods).sort((a,b)=>b[1].amount-a[1].amount).forEach(([n,d])=>{
+    if(n.startsWith('Free'))return;
+    const p=d.amount/maxA*100,c=mc[n]||'#888';
+    bars+=`<div class="bar-row"><span class="bar-label">${n}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.max(p,4)}%;background:${c}">$${d.amount.toLocaleString()}</div></div></div>`;
+  });
+  const maxTier=Math.max(sk,sv,sh,sn,1);
+
+  // Action lists
+  let conflictHTML='',unassignedHTML='',overHTML='';
+  if(Object.keys(iss.conflicts).length){
+    conflictHTML=`<div class="issue-card conflict-type"><h4 style="color:var(--conflict)">⚠ ${Object.keys(iss.conflicts).length} Double-Booked Seats</h4><table class="action-table">
+      <tr><th>Seat</th><th>Occupant 1</th><th>Occupant 2</th></tr>
+      ${Object.entries(iss.conflicts).map(([s,ms])=>`<tr><td style="font-weight:700;font-family:'JetBrains Mono',monospace">${s}</td><td>${ms[0].first} ${ms[0].last}</td><td>${ms.slice(1).map(m=>m.first+' '+m.last).join(', ')}</td></tr>`).join('')}
+    </table></div>`;
+  }
+  if(iss.unassigned.length){
+    unassignedHTML=`<div class="issue-card unassigned-type"><h4 style="color:var(--under)">🪑 ${iss.unassigned.length} Members Need Seats</h4><table class="action-table">
+      <tr><th>Name</th><th>Tickets</th><th>Assigned</th><th>Need</th><th></th></tr>
+      ${iss.unassigned.map(m=>`<tr><td style="font-weight:600">${m.first} ${m.last}</td><td>${m.tickets}</td><td>${seatCount(m)}</td><td style="color:var(--under);font-weight:700">${m.tickets-seatCount(m)}</td><td><button class="btn btn-sm btn-primary" style="font-size:11px;padding:3px 10px" onclick="openEditModal(${m.id})">Edit</button></td></tr>`).join('')}
+    </table></div>`;
+  }
+  if(iss.over.length){
+    overHTML=`<div class="issue-card over-type"><h4 style="color:var(--over)">📋 ${iss.over.length} Members Over-Assigned</h4><table class="action-table">
+      <tr><th>Name</th><th>Tickets</th><th>Seats</th><th>Extra</th><th></th></tr>
+      ${iss.over.map(m=>`<tr><td style="font-weight:600">${m.first} ${m.last}</td><td>${m.tickets}</td><td>${seatCount(m)}</td><td style="color:var(--over);font-weight:700">+${seatCount(m)-m.tickets}</td><td><button class="btn btn-sm btn-primary" style="font-size:11px;padding:3px 10px" onclick="openEditModal(${m.id})">Edit</button></td></tr>`).join('')}
+    </table></div>`;
+  }
+
+  panel.innerHTML=`
+    <div class="dash-grid">
+      <div class="kpi revenue"><div class="kpi-label">Total Revenue</div><div class="kpi-value">$${tr.toLocaleString()}</div></div>
+      <div class="kpi paid"><div class="kpi-label">Collected</div><div class="kpi-value" style="color:var(--paid)">$${pr.toLocaleString()}</div></div>
+      <div class="kpi unpaid"><div class="kpi-label">Outstanding</div><div class="kpi-value" style="color:var(--unpaid)">$${ur.toLocaleString()}</div></div>
+      <div class="kpi donation"><div class="kpi-label">Donations</div><div class="kpi-value" style="color:var(--seva)">$${td.toLocaleString()}</div></div>
+      <div class="kpi tickets"><div class="kpi-label">Total Tickets</div><div class="kpi-value">${tt}</div></div>
+    </div>
+    ${conflictHTML}${unassignedHTML}${overHTML}
+    <div class="chart-row">
+      <div class="card"><h3>Revenue by Payment Method</h3><div class="bar-chart">${bars}</div></div>
+      <div class="card"><h3>Tickets by Tier</h3><div class="bar-chart">
+        <div class="bar-row"><span class="bar-label">Shakti ($96/$120)</span><div class="bar-track"><div class="bar-fill" style="width:${sk/maxTier*100}%;background:var(--shakti)">${sk}</div></div></div>
+        <div class="bar-row"><span class="bar-label">Seva ($48/$60)</span><div class="bar-track"><div class="bar-fill" style="width:${sv/maxTier*100}%;background:var(--seva)">${sv}</div></div></div>
+        <div class="bar-row"><span class="bar-label">Shraddha ($24/$30)</span><div class="bar-track"><div class="bar-fill" style="width:${sh/maxTier*100}%;background:var(--shraddha)">${sh}</div></div></div>
+        <div class="bar-row"><span class="bar-label">Senior ($20)</span><div class="bar-track"><div class="bar-fill" style="width:${sn/maxTier*100}%;background:var(--senior)">${sn}</div></div></div>
+      </div></div>
+    </div>`;
+
+  // Unpaid members list
+  const unpaidMembers=DATA.filter(m=>m.status==='Not Paid');
+  if(unpaidMembers.length){
+    panel.innerHTML+=`<div class="issue-card" style="border-color:var(--unpaid);border-left:4px solid var(--unpaid)"><h4 style="color:var(--unpaid)">💳 ${unpaidMembers.length} Unpaid Members — $${ur.toLocaleString()} Outstanding</h4><table class="action-table">
+      <tr><th>Name</th><th>Method</th><th>Tickets</th><th>Amount Owed</th><th>Seats</th><th></th></tr>
+      ${unpaidMembers.map(m=>`<tr><td style="font-weight:600">${m.first} ${m.last}</td><td style="font-size:12px">${m.method}</td><td>${m.tickets}</td><td style="color:var(--unpaid);font-weight:700;font-family:'JetBrains Mono',monospace">$${m.amount}</td><td style="font-size:11px;font-family:'JetBrains Mono',monospace">${m.seats||'—'}</td><td><button class="btn btn-sm btn-primary" style="font-size:11px;padding:3px 10px" onclick="openEditModal(${m.id})">Edit</button></td></tr>`).join('')}
+    </table></div>`;
+  }
+}
+let dragSource=null,dragMemberIdx=null,selectedMemberId=null,seatColorMode='member',seatTagFilter='All';
+
+const TAG_COLORS=['#e74c3c','#3498db','#2ecc71','#9b59b6','#e67e22','#1abc9c','#f39c12','#d35400','#8e44ad','#c0392b','#16a085','#2980b9','#f1c40f','#e84393','#00b894','#6c5ce7'];
+function getTagColor(tag){
+  if(!tag)return'#667';
+  let h=0;for(let i=0;i<tag.length;i++)h=tag.charCodeAt(i)+((h<<5)-h);
+  return TAG_COLORS[Math.abs(h)%TAG_COLORS.length];
+}
+function getAllTags(){return[...new Set(DATA.map(m=>m.tag).filter(t=>t))].sort()}
+
+function renderSeatMap(){
+  const panel=document.getElementById('panel-seats');
+  const seatMap=getSeatMap(),conflicts=getConflicts();
+
+  const BULK_COLORS=[
+    '#e74c3c','#9b59b6','#3498db','#2ecc71','#e67e22','#1abc9c','#f39c12','#d35400',
+    '#8e44ad','#c0392b','#16a085','#2980b9','#f1c40f','#e84393','#00b894','#6c5ce7',
+    '#fd79a8','#a29bfe','#fab1a0','#55efc4','#74b9ff','#dfe6e9','#b2bec3','#636e72'
+  ];
+  const memberColors={};
+  let colorIdx=0;
+  DATA.forEach(m=>{
+    if(m.tickets>=5 && seatCount(m)>0){
+      memberColors[m.id]=BULK_COLORS[colorIdx%BULK_COLORS.length];
+      colorIdx++;
+    }
+  });
+
+  let bulkLegend='';
+  DATA.filter(m=>memberColors[m.id]).forEach(m=>{
+    const isSelected=selectedMemberId===m.id;
+    bulkLegend+=`<div class="legend-item" style="cursor:pointer;padding:3px 8px;border-radius:6px;${isSelected?'background:var(--accent);color:#000':''}" onclick="selectMember(${m.id})"><div class="legend-swatch" style="background:${memberColors[m.id]}"></div><span style="font-size:11px;${isSelected?'font-weight:700':''}}">${m.first} ${m.last} (${m.tickets})</span></div>`;
+  });
+
+  // All members in dropdown, sorted, show seat gap
+  const allMembers=DATA.filter(m=>m.tickets>0).sort((a,b)=>`${a.first} ${a.last}`.localeCompare(`${b.first} ${b.last}`));
+  const selMem=selectedMemberId!==null?DATA.find(m=>m.id===selectedMemberId):null;
+  const selSC=selMem?seatCount(selMem):0;
+  const selGap=selMem?(selMem.tickets-selSC):0;
+  const canAssign=selectedMemberId!==null&&selGap>0;
+
+  // Payment methods for filter
+  const payMethods=['All',...new Set(DATA.map(m=>m.method))];
+
+  // Tag stats for summary bar
+  let tagStatsBar='';
+  const allTags=getAllTags();
+  if(seatColorMode==='tag'){
+    const tfm=seatTagFilter==='All'?DATA:DATA.filter(m=>m.tag===seatTagFilter);
+    const tfTickets=tfm.reduce((s,m)=>s+m.tickets,0);
+    const tfSeats=tfm.reduce((s,m)=>s+seatCount(m),0);
+    const tfRevenue=tfm.reduce((s,m)=>s+m.amount,0);
+    const tfPaid=tfm.filter(m=>m.status==='Succeeded').reduce((s,m)=>s+m.amount,0);
+    const tfUnpaid=tfm.filter(m=>m.status==='Not Paid').reduce((s,m)=>s+m.amount,0);
+    const tfColor=seatTagFilter!=='All'?getTagColor(seatTagFilter):'var(--accent)';
+    tagStatsBar=`<div style="padding:10px 16px;margin-bottom:10px;border-radius:8px;font-size:13px;background:var(--surface);border:1px solid var(--border);display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+      <strong style="color:${tfColor}">${seatTagFilter==='All'?'All Tags':seatTagFilter}</strong>
+      <span style="font-family:'JetBrains Mono',monospace"><span style="color:var(--text-dim)">Members:</span> <strong>${tfm.length}</strong></span>
+      <span style="font-family:'JetBrains Mono',monospace"><span style="color:var(--text-dim)">Tickets:</span> <strong>${tfTickets}</strong></span>
+      <span style="font-family:'JetBrains Mono',monospace"><span style="color:var(--text-dim)">Seats:</span> <strong>${tfSeats}</strong></span>
+      <span style="font-family:'JetBrains Mono',monospace"><span style="color:var(--text-dim)">Revenue:</span> <strong>$${tfRevenue.toLocaleString()}</strong></span>
+      <span style="font-family:'JetBrains Mono',monospace;color:var(--paid)">Collected: <strong>$${tfPaid.toLocaleString()}</strong></span>
+      ${tfUnpaid>0?`<span style="font-family:'JetBrains Mono',monospace;color:var(--unpaid)">Unpaid: <strong>$${tfUnpaid.toLocaleString()}</strong></span>`:''}
+    </div>`;
+  }
+
+  let html=`
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+      <select id="memberSelect" onchange="selectMemberFromDropdown(this.value)" style="padding:10px 14px;background:var(--surface2);border:1px solid ${canAssign?'var(--accent)':'var(--border)'};border-radius:8px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;outline:none;min-width:300px;cursor:pointer">
+        <option value="">🔍 Select member to highlight / assign seats...</option>
+        ${allMembers.map(m=>{
+          const sc=seatCount(m),gap=m.tickets-sc;
+          const tag=gap>0?' ⚠ NEED '+gap:'';
+          return`<option value="${m.id}" ${selectedMemberId===m.id?'selected':''}>${m.first} ${m.last} — ${sc}/${m.tickets} seats${tag}</option>`}).join('')}
+      </select>
+      ${selectedMemberId!==null?`<button class="btn btn-sm" style="background:var(--surface2);color:var(--text);border:1px solid var(--border)" onclick="clearSelection()">✕ Clear</button>`:``}
+    </div>
+    ${selectedMemberId!==null?`<div style="padding:10px 16px;margin-bottom:10px;border-radius:8px;font-size:13px;background:${canAssign?'#f59e0b18':'var(--surface)'};border:1px solid ${canAssign?'var(--accent)':'var(--border)'}">
+      <strong style="color:var(--accent)">${selMem?selMem.first+' '+selMem.last:''}</strong>
+      <span style="color:var(--text-dim);margin:0 8px">·</span>
+      <span style="font-family:'JetBrains Mono',monospace">Tickets: <strong>${selMem?selMem.tickets:0}</strong></span>
+      <span style="color:var(--text-dim);margin:0 4px">·</span>
+      <span style="font-family:'JetBrains Mono',monospace">Seats: <strong>${selSC}/${selMem?selMem.tickets:0}</strong></span>
+      <span style="color:var(--text-dim);margin:0 4px">·</span>
+      <span style="font-family:'JetBrains Mono',monospace">${selMem?selMem.method:''}</span>
+      <span style="color:var(--text-dim);margin:0 4px">·</span>
+      <span style="font-family:'JetBrains Mono',monospace">$${selMem?selMem.amount:0}</span>
+      ${selMem&&selMem.shakti?`<span style="color:var(--shakti);margin-left:6px;font-size:11px">Shakti×${selMem.shakti}</span>`:''}${selMem&&selMem.seva?`<span style="color:var(--seva);margin-left:6px;font-size:11px">Seva×${selMem.seva}</span>`:''}${selMem&&selMem.shraddha?`<span style="color:var(--shraddha);margin-left:6px;font-size:11px">Shraddha×${selMem.shraddha}</span>`:''}${selMem&&selMem.senior?`<span style="color:var(--senior);margin-left:6px;font-size:11px">Senior×${selMem.senior}</span>`:''}
+      ${selMem&&selMem.donation>0?`<span style="color:var(--seva);margin-left:6px;font-size:11px">💰$${selMem.donation}</span>`:''}
+      <br>
+      ${canAssign?`<span style="color:var(--accent);font-weight:600">👆 Click ${selGap} empty seat${selGap>1?'s':''} to assign</span>`:'<span style="color:var(--paid)">✓ Fully assigned</span>'}
+      ${selSC>0?`<span style="color:var(--text-dim);margin-left:12px;font-size:12px">${parseSeats(selMem.seats).join(', ')}</span>`:''}
+    </div>`:''}
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+      <span style="font-size:12px;color:var(--text-dim);font-weight:600">COLOR BY:</span>
+      <div class="filter-chip ${seatColorMode==='member'?'active':''}" onclick="setSeatColorMode('member')">By Member</div>
+      <div class="filter-chip ${seatColorMode==='tag'?'active':''}" onclick="setSeatColorMode('tag')">By Tag</div>
+    </div>
+    ${seatColorMode==='tag'?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="filter-chip ${seatTagFilter==='All'?'active':''}" onclick="setSeatTagFilter('All')">All</div>
+      <div class="filter-chip ${seatTagFilter==='(untagged)'?'active':''}" onclick="setSeatTagFilter('(untagged)')" style="border-color:#667;${seatTagFilter==='(untagged)'?'background:#667;color:#fff;':''}">Untagged</div>
+      ${allTags.map(t=>`<div class="filter-chip ${seatTagFilter===t?'active':''}" onclick="setSeatTagFilter('${t.replace(/'/g,"\\'")}')" style="border-color:${getTagColor(t)};${seatTagFilter===t?'background:'+getTagColor(t)+';color:#fff;':''}">${t}</div>`).join('')}
+    </div>`:``}
+    ${tagStatsBar}
+    <div class="seat-legend">
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--surface2);border:1.5px solid var(--border)"></div>Empty</div>
+      ${seatColorMode==='member'?`
+        <div class="legend-item"><div class="legend-swatch" style="background:#667"></div>1-4 tickets</div>
+      `:`
+        ${allTags.map(t=>`<div class="legend-item"><div class="legend-swatch" style="background:${getTagColor(t)}"></div>${t}</div>`).join('')}
+        <div class="legend-item"><div class="legend-swatch" style="background:#667"></div>Untagged</div>
+      `}
+      <div class="legend-item"><div class="legend-swatch" style="border:2px solid var(--conflict);background:transparent"></div>Conflict</div>
+      <div class="legend-item"><div class="legend-swatch" style="border:2px solid var(--over);background:transparent"></div><span style="color:var(--over)">Over</span></div>
+      <div class="legend-item"><div class="legend-swatch" style="border:2px dashed var(--under);background:transparent"></div><span style="color:var(--under)">Under</span></div>
+    </div>
+    ${seatColorMode==='member'&&bulkLegend?`<div class="seat-legend" style="margin-top:-8px"><span style="font-size:11px;color:var(--text-dim);font-weight:600;margin-right:8px">BULK (5+):</span>${bulkLegend}</div>`:''}
+    <div class="drag-hint">🖱️ Drag to reassign · ${canAssign?'Click empty seats to assign to '+selMem.first:'Select a member to click-assign'} · Hover for details</div>
+    <div class="seat-map-wrapper"><div class="seat-map-theater">
+    <div class="entrance-label">↓ MAIN ENTRANCE ↓</div>`;
+
+  const highlightSeats=new Set();
+  if(selectedMemberId!==null){
+    const sm=DATA.find(m=>m.id===selectedMemberId);
+    if(sm) parseSeats(sm.seats).forEach(s=>highlightSeats.add(s));
+  }
+
+  // Build set of seats matching tag filter
+  const tagFilterSeats=new Set();
+  if(seatColorMode==='tag'&&seatTagFilter!=='All'){
+    DATA.forEach(m=>{
+      const match=seatTagFilter==='(untagged)'?!m.tag:m.tag===seatTagFilter;
+      if(match)parseSeats(m.seats).forEach(s=>tagFilterSeats.add(s));
+    });
+  }
+
+  const rowOrder=['L','K','J','H','G','F','E','D','C','B','A'];
+  rowOrder.forEach(rl=>{
+    const cfg=ROWS_CONFIG[rl];if(!cfg)return;
+    html+=`<div class="seat-row-wrap"><div class="row-label-l">${rl}</div><div class="section-odds">`;
+    cfg.odds.forEach(num=>{html+=buildSeat(rl,num,seatMap,conflicts,memberColors,highlightSeats,tagFilterSeats)});
+    html+=`</div><div class="aisle">│</div><div class="section-evens">`;
+    cfg.evens.forEach(num=>{html+=buildSeat(rl,num,seatMap,conflicts,memberColors,highlightSeats,tagFilterSeats)});
+    html+=`</div><div class="row-label-r">${rl}</div></div>`;
+  });
+  html+=`<div class="stage-label">★ STAGE ★</div></div></div>`;
+  panel.innerHTML=html;
+}
+
+function setSeatColorMode(mode){seatColorMode=mode;renderSeatMap()}
+function setSeatTagFilter(f){seatTagFilter=f;renderSeatMap()}
+
+function selectMember(id){
+  selectedMemberId=selectedMemberId===id?null:id;
+  renderSeatMap();
+}
+function selectMemberFromDropdown(val){
+  selectedMemberId=val===''?null:parseInt(val);
+  renderSeatMap();
+}
+function clearSelection(){
+  selectedMemberId=null;
+  renderSeatMap();
+}
+
+function clickAssign(sid){
+  if(selectedMemberId===null)return;
+  const m=DATA[selectedMemberId];
+  const sc=seatCount(m);
+  if(sc>=m.tickets){
+    showToast('❌ '+m.first+' already has '+sc+'/'+m.tickets+' seats assigned');
+    return;
+  }
+  const seats=parseSeats(m.seats);
+  seats.push(sid);
+  m.seats=seats.join(', ');
+  showToast('✓ '+sid+' assigned to '+m.first+' '+m.last+' ('+seats.length+'/'+m.tickets+')');
+  render();
+}
+
+function buildSeat(rl,num,seatMap,conflicts,memberColors,highlightSeats,tagFilterSeats){
+  const sid=`${rl}${num}`,occ=seatMap[sid]||[],isCon=conflicts[sid],empty=occ.length===0;
+  const hasSelection=highlightSeats.size>0;
+  const isHighlighted=highlightSeats.has(sid);
+  const hasTagFilter=seatColorMode==='tag'&&seatTagFilter!=='All';
+  const matchesTagFilter=tagFilterSeats.has(sid);
+
+  let dimmed=false;
+  if(hasSelection&&!isHighlighted) dimmed=true;
+  if(hasTagFilter&&!empty&&!matchesTagFilter) dimmed=true;
+
+  const dimClass=dimmed?'dimmed':'';
+  const hlClass=isHighlighted?'highlighted':'';
+
+  if(empty){
+    const canClick=selectedMemberId!==null;
+    const selMem=canClick?DATA[selectedMemberId]:null;
+    const canAssignHere=selMem&&seatCount(selMem)<selMem.tickets;
+    return`<div class="seat empty ${dimClass} ${canAssignHere?'assignable':''}" data-seat="${sid}" draggable="false" onclick="${canAssignHere?`clickAssign('${sid}')`:''}" onmouseenter="showTT(event,'${sid}')" onmouseleave="hideTT()" ondragover="dov(event)" ondragenter="den(event)" ondragleave="dlv(event)" ondrop="ddr(event,'${sid}')">${num}</div>`;
+  }
+  const m=occ[0];
+  const sc=seatCount(m);
+  const isOver=sc>m.tickets;
+  const isUnder=sc<m.tickets;
+
+  let bgColor;
+  if(seatColorMode==='tag'){
+    bgColor=m.tag?getTagColor(m.tag):'#667';
+  } else {
+    bgColor=memberColors[m.id]||(m.status==='Free'?'#555':'#667');
+  }
+
+  const classes=['seat','occupied',isCon?'conflict':'',isOver?'member-over':'',isUnder?'member-under':'',hlClass,dimClass].filter(Boolean).join(' ');
+  return`<div class="${classes}" data-seat="${sid}" style="background:${bgColor}" draggable="true" onmouseenter="showTT(event,'${sid}')" onmouseleave="hideTT()" ondragstart="ds(event,'${sid}')" ondragover="dov(event)" ondragenter="den(event)" ondragleave="dlv(event)" ondrop="ddr(event,'${sid}')" ondragend="ded(event)">${num}</div>`;
+}
+
+function showTT(e,sid){
+  const tt=document.getElementById('tooltip'),sm=getSeatMap(),occ=sm[sid]||[];
+  if(!occ.length){
+    const selM=selectedMemberId!==null?DATA[selectedMemberId]:null;
+    const canA=selM&&seatCount(selM)<selM.tickets;
+    tt.innerHTML=`<div class="tt-name">${sid}</div><div class="tt-detail">${canA?'👆 Click to assign to <strong>'+selM.first+' '+selM.last+'</strong>':'Empty seat'}</div>`}
+  else{
+    const lines=occ.map(m=>{
+      const sc=seatCount(m),status=sc>m.tickets?'⚠ OVER-ASSIGNED':sc<m.tickets?'⚠ NEEDS SEATS':'✓';
+      return`<div class="tt-name">${m.first} ${m.last}</div><div class="tt-detail">${getTier(m).toUpperCase()} · ${m.method} · Seats: ${sc}/${m.tickets} ${status}</div>`;
+    }).join('<hr style="border-color:var(--border);margin:6px 0">');
+    tt.innerHTML=lines+(occ.length>1?'<div style="color:var(--conflict);font-weight:700;margin-top:6px">⚠ DOUBLE BOOKED</div>':'');
+  }
+  tt.classList.add('show');tt.style.left=Math.min(e.clientX+14,window.innerWidth-300)+'px';tt.style.top=(e.clientY+14)+'px';
+}
+function hideTT(){document.getElementById('tooltip').classList.remove('show')}
+function ds(e,sid){dragSource=sid;const sm=getSeatMap(),o=sm[sid];if(o&&o.length)dragMemberIdx=o[0].id;e.target.classList.add('dragging');e.dataTransfer.effectAllowed='move'}
+function dov(e){e.preventDefault()}
+function den(e){e.preventDefault();e.target.closest('.seat')?.classList.add('drag-over')}
+function dlv(e){e.target.closest('.seat')?.classList.remove('drag-over')}
+function ded(e){document.querySelectorAll('.seat').forEach(s=>{s.classList.remove('dragging','drag-over')})}
+function ddr(e,target){
+  e.preventDefault();document.querySelectorAll('.seat').forEach(s=>s.classList.remove('drag-over'));
+  if(!dragSource||dragSource===target||dragMemberIdx===null)return;
+  const m=DATA[dragMemberIdx],seats=parseSeats(m.seats),idx=seats.indexOf(dragSource);
+  // Moving existing seat to new position (swap, not adding)
+  if(idx>=0){seats[idx]=target;m.seats=seats.join(', ');render()}
+  dragSource=null;dragMemberIdx=null;
+}
+
+// ===== MEMBERS TABLE =====
+let sortCol='first',sortDir=1,searchTerm='',filterMethod='All',filterTag='All';
+let selectedIds=new Set();
+
+function getFilteredMembers(){
+  return DATA.filter(m=>{
+    const name=`${m.first} ${m.last}`.toLowerCase();
+    if(searchTerm&&!name.includes(searchTerm.toLowerCase()))return false;
+    if(filterMethod!=='All'&&m.method!==filterMethod)return false;
+    if(filterTag!=='All'){
+      if(filterTag==='(untagged)'){if(m.tag)return false}
+      else{if(m.tag!==filterTag)return false}
+    }
+    return true;
+  });
+}
+
+function renderMembers(){
+  const panel=document.getElementById('panel-members');
+  const methods=['All',...new Set(DATA.map(m=>m.method))];
+  const tags=['All','(untagged)',...getAllTags()];
+  let filtered=getFilteredMembers();
+  filtered.sort((a,b)=>{let va=a[sortCol],vb=b[sortCol];if(typeof va==='string')return va.localeCompare(vb)*sortDir;return((va||0)-(vb||0))*sortDir});
+
+  const fTotalAmt=filtered.reduce((s,m)=>s+m.amount,0);
+  const fTotalDon=filtered.reduce((s,m)=>s+(m.donation||0),0);
+  const fTotalTix=filtered.reduce((s,m)=>s+m.tickets,0);
+  const fTotalSeats=filtered.reduce((s,m)=>s+seatCount(m),0);
+  const fPaid=filtered.filter(m=>m.status==='Succeeded').reduce((s,m)=>s+m.amount,0);
+  const fUnpaid=filtered.filter(m=>m.status==='Not Paid').reduce((s,m)=>s+m.amount,0);
+  const summaryLabel=filterMethod!=='All'?filterMethod:(filterTag!=='All'?filterTag:(searchTerm?`"${searchTerm}"`:'All Members'));
+  const summaryCard=`<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:10px;align-items:center">
+    <div style="font-weight:700;font-size:14px;color:var(--accent);min-width:140px">${summaryLabel} <span style="color:var(--text-dim);font-weight:400;font-size:12px">(${filtered.length} members)</span></div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:13px;display:flex;gap:16px;flex-wrap:wrap">
+      <span><span style="color:var(--text-dim)">Tickets:</span> <strong>${fTotalTix}</strong></span>
+      <span><span style="color:var(--text-dim)">Seats:</span> <strong>${fTotalSeats}</strong></span>
+      <span><span style="color:var(--text-dim)">Revenue:</span> <strong>$${fTotalAmt.toLocaleString()}</strong></span>
+      <span><span style="color:var(--paid)">Collected:</span> <strong style="color:var(--paid)">$${fPaid.toLocaleString()}</strong></span>
+      ${fUnpaid>0?`<span><span style="color:var(--unpaid)">Unpaid:</span> <strong style="color:var(--unpaid)">$${fUnpaid.toLocaleString()}</strong></span>`:''}
+      ${fTotalDon>0?`<span><span style="color:var(--seva)">Donations:</span> <strong style="color:var(--seva)">$${fTotalDon.toLocaleString()}</strong></span>`:''}
+    </div>
+  </div>`;
+
+  // Bulk action bar
+  const selCount=selectedIds.size;
+  const allChecked=filtered.length>0&&filtered.every(m=>selectedIds.has(m.id));
+  const existingTags=getAllTags();
+  const bulkBar=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;padding:10px 16px;background:${selCount>0?'#f59e0b12':'var(--surface)'};border:1px solid ${selCount>0?'var(--accent)':'var(--border)'};border-radius:10px;min-height:44px">
+    <span style="font-size:13px;font-weight:600;color:${selCount>0?'var(--accent)':'var(--text-dim)'}">${selCount>0?selCount+' selected':'Select members to bulk tag'}</span>
+    ${selCount>0?`
+      <span style="color:var(--text-dim);font-size:12px">→</span>
+      ${existingTags.map(t=>`<div class="filter-chip" onclick="bulkTag('${t.replace(/'/g,"\\'")}')" style="border-color:${getTagColor(t)};font-size:11px;padding:4px 10px;cursor:pointer">${t}</div>`).join('')}
+      <input type="text" id="bulkTagInput" placeholder="New tag..." style="padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Outfit',sans-serif;font-size:12px;width:120px;outline:none" onkeydown="if(event.key==='Enter'){bulkTag(this.value);this.value=''}">
+      <button class="btn btn-sm btn-primary" style="font-size:11px;padding:4px 12px" onclick="bulkTagFromInput()">Apply</button>
+      <button class="btn btn-sm" style="background:var(--surface2);color:var(--text-dim);font-size:11px;padding:4px 10px;border:1px solid var(--border)" onclick="bulkClearTag()">Clear Tags</button>
+      <button class="btn btn-sm" style="background:none;color:var(--text-dim);font-size:11px;padding:4px 10px" onclick="selectedIds.clear();renderMembers()">Deselect</button>
+    `:`
+      <button class="btn btn-sm" style="background:var(--surface2);color:var(--text-dim);font-size:11px;padding:4px 10px;border:1px solid var(--border)" onclick="selectAllFiltered()">Select All (${filtered.length})</button>
+    `}
+  </div>`;
+
+  panel.innerHTML=`
+    <div class="search-bar"><input type="text" placeholder="Search by name..." value="${searchTerm}" oninput="searchTerm=this.value;renderMembers()"></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+      <span style="font-size:11px;color:var(--text-dim);font-weight:600">PAYMENT:</span>
+      ${methods.map(m=>`<div class="filter-chip ${filterMethod===m?'active':''}" onclick="filterMethod='${m.replace(/'/g,"\\'")}';renderMembers()">${m}</div>`).join('')}
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+      <span style="font-size:11px;color:var(--text-dim);font-weight:600">TAG:</span>
+      ${tags.map(t=>`<div class="filter-chip ${filterTag===t?'active':''}" onclick="filterTag='${t.replace(/'/g,"\\'")}';renderMembers()" ${t!=='All'&&t!=='(untagged)'?`style="border-color:${getTagColor(t)};${filterTag===t?'background:'+getTagColor(t)+';color:#fff;':''}"`:``}>${t}</div>`).join('')}
+    </div>
+    ${summaryCard}
+    ${bulkBar}
+    <div class="table-wrap" style="max-height:65vh;overflow-y:auto"><table>
+      <tr><th style="width:36px"><input type="checkbox" ${allChecked?'checked':''} onchange="toggleSelectAll(this.checked)" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer"></th><th onclick="toggleSort('first')">Name</th><th onclick="toggleSort('tag')">Tag</th><th onclick="toggleSort('method')">Payment</th><th onclick="toggleSort('status')">Status</th><th onclick="toggleSort('tickets')">Tickets</th><th>Seats</th><th onclick="toggleSort('amount')">Amount</th><th></th></tr>
+      ${filtered.map(m=>{
+        const sb=m.status==='Succeeded'?'badge-paid':m.status==='Not Paid'?'badge-unpaid':'badge-free';
+        const sc=seatCount(m),diff=sc-m.tickets;
+        const seatStatus=diff>0?'over':diff<0?'under':'ok';
+        const isChecked=selectedIds.has(m.id);
+        return`<tr style="${isChecked?'background:rgba(245,158,11,.06)':''}">
+        <td><input type="checkbox" ${isChecked?'checked':''} onchange="toggleSelect(${m.id},this.checked)" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer"></td>
+        <td style="font-weight:600">${m.first} ${m.last}</td>
+        <td>${m.tag?`<span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;background:${getTagColor(m.tag)}22;color:${getTagColor(m.tag)};border:1px solid ${getTagColor(m.tag)}44;cursor:pointer" onclick="promptTag(${m.id})">${m.tag}</span>`:`<button style="background:none;border:1px dashed var(--border);border-radius:12px;padding:2px 10px;font-size:11px;color:var(--text-dim);cursor:pointer;font-family:'Outfit',sans-serif" onclick="promptTag(${m.id})">+ tag</button>`}</td>
+        <td style="font-size:12px">${m.method}</td><td><span class="badge ${sb}">${m.status}</span></td>
+        <td><div class="seat-badge"><span class="ct ${seatStatus}">${sc}/${m.tickets}</span>${diff>0?'<span class="badge badge-over">+'+diff+'</span>':diff<0?'<span class="badge badge-under">'+diff+'</span>':''}</div></td>
+        <td style="font-size:11px;font-family:'JetBrains Mono',monospace;max-width:180px;word-break:break-all">${m.seats||'<em style="color:var(--text-dim)">—</em>'}</td>
+        <td style="font-family:'JetBrains Mono',monospace">$${m.amount}${m.donation>0?'<br><span style="color:var(--seva);font-size:11px">💰$'+m.donation+'</span>':''}</td>
+        <td><button class="btn btn-sm" style="background:var(--accent);color:#000;font-size:11px;padding:3px 10px" onclick="openEditModal(${m.id})">✏️</button> <button class="btn btn-sm" style="background:var(--seva);color:#fff;font-size:11px;padding:3px 10px" onclick="openDM(${m.id})">💰</button></td></tr>`}).join('')}
+    </table></div>`;
+}
+
+function toggleSelect(id,checked){if(checked)selectedIds.add(id);else selectedIds.delete(id);renderMembers()}
+function toggleSelectAll(checked){
+  const filtered=getFilteredMembers();
+  if(checked)filtered.forEach(m=>selectedIds.add(m.id));
+  else filtered.forEach(m=>selectedIds.delete(m.id));
+  renderMembers();
+}
+function selectAllFiltered(){getFilteredMembers().forEach(m=>selectedIds.add(m.id));renderMembers()}
+function bulkTag(tag){
+  const t=tag.trim();if(!t)return;
+  selectedIds.forEach(id=>{DATA[id].tag=t});
+  const count=selectedIds.size;
+  selectedIds.clear();render();
+  showToast('✓ Tagged '+count+' members as "'+t+'"');
+}
+function bulkTagFromInput(){const inp=document.getElementById('bulkTagInput');if(inp&&inp.value.trim())bulkTag(inp.value.trim())}
+function bulkClearTag(){
+  const count=selectedIds.size;
+  selectedIds.forEach(id=>{DATA[id].tag=''});
+  selectedIds.clear();render();
+  showToast('✓ Cleared tags from '+count+' members');
+}
+function toggleSort(c){if(sortCol===c)sortDir*=-1;else{sortCol=c;sortDir=1}renderMembers()}
+function promptTag(id){
+  const m=DATA[id];
+  const existing=getAllTags();
+  const tagPrompt=prompt('Tag for '+m.first+' '+m.last+':\n\nExisting tags: '+(existing.length?existing.join(', '):'none yet')+'\n\nType a tag name (or leave empty to clear):',m.tag||'');
+  if(tagPrompt===null)return;
+  m.tag=tagPrompt.trim();
+  render();
+  showToast(m.tag?'✓ Tagged "'+m.tag+'"':'✓ Tag cleared');
+}
+
+// ===== ISSUES TAB =====
+function renderIssues(){
+  const panel=document.getElementById('panel-issues'),iss=getIssues();
+  if(iss.total===0){panel.innerHTML=`<div class="card" style="text-align:center;padding:40px"><h3 style="color:var(--paid)">✓ No Issues</h3><p style="color:var(--text-dim)">All seats assigned correctly, no conflicts or over-assignments.</p></div>`;return}
+
+  let html=`<div class="dash-grid" style="margin-bottom:20px">
+    <div class="kpi conflict-kpi"><div class="kpi-label">Conflicts</div><div class="kpi-value" style="color:var(--conflict)">${Object.keys(iss.conflicts).length}</div></div>
+    <div class="kpi seats-kpi"><div class="kpi-label">Need Seats</div><div class="kpi-value" style="color:var(--under)">${iss.unassigned.length}</div></div>
+    <div class="kpi over-kpi"><div class="kpi-label">Over-Assigned</div><div class="kpi-value" style="color:var(--over)">${iss.over.length}</div></div>
+  </div>`;
+
+  if(Object.keys(iss.conflicts).length){
+    html+=`<div class="issue-card conflict-type"><h4 style="color:var(--conflict)">⚠ Double-Booked Seats</h4><p style="color:var(--text-dim);margin-bottom:12px;font-size:13px">Use the Seat Map to drag one occupant to a new seat.</p><table class="action-table">
+      <tr><th>Seat</th><th>Occupants</th></tr>
+      ${Object.entries(iss.conflicts).map(([s,ms])=>`<tr><td style="font-weight:700;font-family:'JetBrains Mono',monospace">${s}</td><td>${ms.map(m=>'<strong>'+m.first+' '+m.last+'</strong> ('+m.method+')').join(' vs ')}</td></tr>`).join('')}
+    </table></div>`;
+  }
+  if(iss.unassigned.length){
+    html+=`<div class="issue-card unassigned-type"><h4 style="color:var(--under)">🪑 Members Missing Seat Assignments</h4><table class="action-table">
+      <tr><th>Name</th><th>Tickets</th><th>Assigned</th><th>Need</th><th></th></tr>
+      ${iss.unassigned.map(m=>`<tr><td style="font-weight:600">${m.first} ${m.last}</td><td>${m.tickets}</td><td>${seatCount(m)}</td><td style="color:var(--under);font-weight:700">${m.tickets-seatCount(m)}</td><td><button class="btn btn-sm btn-primary" style="font-size:11px;padding:3px 10px" onclick="openEditModal(${m.id})">Assign</button></td></tr>`).join('')}
+    </table></div>`;
+  }
+  if(iss.over.length){
+    html+=`<div class="issue-card over-type"><h4 style="color:var(--over)">📋 Over-Assigned Members</h4><p style="color:var(--text-dim);margin-bottom:12px;font-size:13px">These members have more seats than tickets. Edit to correct ticket count or remove extra seats.</p><table class="action-table">
+      <tr><th>Name</th><th>Tickets</th><th>Seats</th><th>Extra</th><th></th></tr>
+      ${iss.over.map(m=>`<tr><td style="font-weight:600">${m.first} ${m.last}</td><td>${m.tickets}</td><td>${seatCount(m)}</td><td style="color:var(--over);font-weight:700">+${seatCount(m)-m.tickets}</td><td><button class="btn btn-sm btn-primary" style="font-size:11px;padding:3px 10px" onclick="openEditModal(${m.id})">Fix</button></td></tr>`).join('')}
+    </table></div>`;
+  }
+  panel.innerHTML=html;
+}
+
+// ===== EDIT MEMBER MODAL =====
+let editTarget=null;
+function openEditModal(id){
+  editTarget=id;const m=DATA[id];
+  document.getElementById('editModalTitle').textContent=`Edit: ${m.first} ${m.last}`;
+  document.getElementById('editFirst').value=m.first;
+  document.getElementById('editLast').value=m.last;
+  document.getElementById('editShakti').value=m.shakti;
+  document.getElementById('editSeva').value=m.seva;
+  document.getElementById('editShraddha').value=m.shraddha;
+  document.getElementById('editSenior').value=m.senior;
+  document.getElementById('editMethod').value=m.method;
+  document.getElementById('editStatus').value=m.status;
+  document.getElementById('editAmount').value=m.amount;
+  document.getElementById('editDonation').value=m.donation||0;
+  document.getElementById('editSeats').value=m.seats;
+  document.getElementById('editNotes').value=m.notes;
+  document.getElementById('editTag').value=m.tag||'';
+  document.getElementById('editSeatWarning').style.display='none';
+  document.getElementById('editModal').classList.add('show');
+}
+function closeEditModal(){document.getElementById('editModal').classList.remove('show');editTarget=null}
+function saveEdit(){
+  if(editTarget===null)return;
+  const m=DATA[editTarget];
+  const sk=parseInt(document.getElementById('editShakti').value)||0;
+  const sv=parseInt(document.getElementById('editSeva').value)||0;
+  const sh=parseInt(document.getElementById('editShraddha').value)||0;
+  const sn=parseInt(document.getElementById('editSenior').value)||0;
+  const totalTickets=sk+sv+sh+sn;
+  const newSeats=document.getElementById('editSeats').value.trim();
+  const seatList=parseSeats(newSeats);
+
+  // ENFORCE: cannot assign more seats than tickets
+  if(seatList.length>totalTickets){
+    document.getElementById('editSeatWarning').style.display='block';
+    document.getElementById('editSeatWarning').textContent=`❌ Cannot assign ${seatList.length} seats for ${totalTickets} tickets. Remove ${seatList.length-totalTickets} seat(s) or increase ticket count.`;
+    return;
+  }
+
+  m.first=document.getElementById('editFirst').value.trim();
+  m.last=document.getElementById('editLast').value.trim();
+  m.shakti=sk;m.seva=sv;m.shraddha=sh;m.senior=sn;
+  m.tickets=totalTickets;
+  m.method=document.getElementById('editMethod').value;
+  m.status=document.getElementById('editStatus').value;
+  m.amount=parseInt(document.getElementById('editAmount').value)||0;
+  m.donation=parseInt(document.getElementById('editDonation').value)||0;
+  m.seats=newSeats;
+  m.notes=document.getElementById('editNotes').value.trim();
+  m.tag=document.getElementById('editTag').value.trim();
+  closeEditModal();render();
+  showToast('✓ Member updated');
+}
+
+// ===== ADD FORM =====
+function renderAddForm(){
+  document.getElementById('panel-add').innerHTML=`
+    <div class="card"><h3>Add New Member</h3>
+      <div class="form-grid">
+        <div class="form-group"><label>First Name</label><input type="text" id="addFirst"></div>
+        <div class="form-group"><label>Last Name</label><input type="text" id="addLast"></div>
+        <div class="form-group"><label>Payment Method</label><select id="addMethod"><option>Card</option><option>Apple/Google Pay</option><option>Cash (Rupal)</option><option>Cash (Leena)</option><option>Not Paid</option><option>Free (Volunteer)</option><option>Free ($200 donation)</option><option>Free ($500 donation)</option></select></div>
+        <div class="form-group"><label>Payment Status</label><select id="addStatus"><option>Succeeded</option><option>Not Paid</option><option>Free</option></select></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label>Shakti (Row A)</label><input type="number" id="addShakti" min="0" value="0"></div>
+        <div class="form-group"><label>Seva (Row B)</label><input type="number" id="addSeva" min="0" value="0"></div>
+        <div class="form-group"><label>Shraddha (C+)</label><input type="number" id="addShraddha" min="0" value="0"></div>
+        <div class="form-group"><label>Senior</label><input type="number" id="addSenior" min="0" value="0"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label>Seats (e.g. K2, K4)</label><input type="text" id="addSeats" placeholder="Comma-separated"></div>
+        <div class="form-group"><label>Amount ($)</label><input type="number" id="addAmount" min="0" value="0"></div>
+        <div class="form-group"><label>Donation ($)</label><input type="number" id="addDonation" min="0" value="0"></div>
+        <div class="form-group"><label>Tag</label><input type="text" id="addTag" placeholder="e.g. VIP, Family"></div>
+        <div class="form-group"><label>Notes</label><input type="text" id="addNotes" placeholder="Optional"></div>
+      </div>
+      <div style="margin-top:8px;margin-bottom:12px;padding:12px;background:var(--surface2);border-radius:8px;font-size:13px;color:var(--text-dim)">
+        <strong style="color:var(--accent)">Pricing:</strong> Shakti $96/$120 · Seva $48/$60 · Shraddha $24/$30 · Senior $20
+      </div>
+      <button class="btn btn-primary" onclick="addMember()">Add Member</button>
+      <span id="addMsg" style="margin-left:12px;font-size:13px"></span>
+    </div>`;
+}
+function addMember(){
+  const first=document.getElementById('addFirst').value.trim(),last=document.getElementById('addLast').value.trim();
+  if(!first){document.getElementById('addMsg').innerHTML='<span style="color:var(--unpaid)">First name required</span>';return}
+  const sk=parseInt(document.getElementById('addShakti').value)||0,sv=parseInt(document.getElementById('addSeva').value)||0,sh=parseInt(document.getElementById('addShraddha').value)||0,sn=parseInt(document.getElementById('addSenior').value)||0;
+  const totalT=sk+sv+sh+sn;
+  const seats=document.getElementById('addSeats').value.trim();
+  const seatList=parseSeats(seats);
+  // ENFORCE: seats <= tickets
+  if(seatList.length>totalT){
+    document.getElementById('addMsg').innerHTML=`<span style="color:var(--unpaid)">❌ ${seatList.length} seats exceeds ${totalT} tickets</span>`;return;
+  }
+  DATA.push({id:DATA.length,first,last,method:document.getElementById('addMethod').value,status:document.getElementById('addStatus').value,shakti:sk,seva:sv,shraddha:sh,senior:sn,tickets:totalT,amount:parseInt(document.getElementById('addAmount').value)||0,seats,notes:document.getElementById('addNotes').value.trim(),donation:parseInt(document.getElementById('addDonation').value)||0,donationNote:'',tag:document.getElementById('addTag').value.trim()});
+  document.getElementById('addMsg').innerHTML='<span style="color:var(--paid)">✓ Added!</span>';render();
+  setTimeout(()=>{const el=document.getElementById('addMsg');if(el)el.innerHTML=''},2000);
+}
+
+// ===== DONATION MODAL =====
+let donTarget=null;
+function openDM(id){donTarget=id;const m=DATA[id];document.getElementById('donMember').value=`${m.first} ${m.last}`;document.getElementById('donAmount').value=m.donation||'';document.getElementById('donNote').value=m.donationNote||'';document.getElementById('donationModal').classList.add('show')}
+function closeDonationModal(){document.getElementById('donationModal').classList.remove('show');donTarget=null}
+function saveDonation(){if(donTarget===null)return;DATA[donTarget].donation=parseInt(document.getElementById('donAmount').value)||0;DATA[donTarget].donationNote=document.getElementById('donNote').value.trim();closeDonationModal();render()}
+
+// ===== SAVE / LOAD / AUTOSAVE =====
+const STORAGE_KEY='bhajan_jamming_2026_data';
+
+function saveState(){
+  const json=JSON.stringify(DATA,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  const d=new Date();
+  a.download=`BhajanJamming_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}_${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}.json`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  showToast('💾 State saved to file');
+}
+
+function loadState(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const loaded=JSON.parse(e.target.result);
+      if(!Array.isArray(loaded)||!loaded[0]||!loaded[0].first){
+        showToast('❌ Invalid file format');return;
+      }
+      DATA=loaded.map((r,i)=>({...r,id:i}));
+      autoSave();
+      render();
+      showToast('✓ Loaded '+DATA.length+' members from file');
+    }catch(err){showToast('❌ Error reading file: '+err.message)}
+  };
+  reader.readAsText(file);
+  input.value='';
+}
+
+function autoSave(){
+  try{
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(DATA));
+    const el=document.getElementById('saveStatus');
+    if(el){el.textContent='Auto-saved '+new Date().toLocaleTimeString();setTimeout(()=>{if(el)el.textContent=''},3000)}
+  }catch(e){}
+}
+
+function loadFromStorage(){
+  try{
+    const stored=localStorage.getItem(STORAGE_KEY);
+    if(stored){
+      const loaded=JSON.parse(stored);
+      if(Array.isArray(loaded)&&loaded.length>0&&loaded[0].first){
+        DATA=loaded.map((r,i)=>({...r,id:i}));
+        return true;
+      }
+    }
+  }catch(e){}
+  return false;
+}
+
+function clearSavedState(){
+  try{localStorage.removeItem(STORAGE_KEY)}catch(e){}
+  initData();render();
+  showToast('✓ Reset to original data');
+}
+
+// Init: try localStorage first, fallback to hardcoded data
+initData();
+if(loadFromStorage()){
+  const el=document.getElementById('saveStatus');
+  if(el)el.textContent='Restored from auto-save';
+  setTimeout(()=>{const el=document.getElementById('saveStatus');if(el)el.textContent=''},3000);
+}
+render();
+</script>
+</body>
+</html>
